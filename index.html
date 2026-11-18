@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ระบบสร้างใบเสร็จอัตโนมัติ</title>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&family=Mitr:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3fb;--panel:#fff;--ink:#14213d;--mute:#5a6b8c;--line:#cfd9ec;--navy:#143a7b;--soft:#dfe9fa;--accent:#c62828;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1626;--panel:#172238;--ink:#e8eefb;--mute:#9db0d3;--line:#2b3a59;--soft:#22304d}}
+:root[data-theme="dark"]{--bg:#0e1626;--panel:#172238;--ink:#e8eefb;--mute:#9db0d3;--line:#2b3a59;--soft:#22304d}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Thai","Sarabun",Tahoma,sans-serif;line-height:1.5}
+.wrap{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;max-width:1180px;margin:0 auto;padding:16px}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}.stage{order:-1;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}}
+h1{font-size:20px;margin:0 0 12px}
+.form{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+fieldset{border:0;padding:0;margin:0 0 14px}
+legend{font-weight:700;font-size:14px;margin-bottom:6px;color:var(--navy)}
+@media (prefers-color-scheme:dark){legend{color:#8fb2ff}}
+label{display:block;font-size:13px;color:var(--mute);margin:6px 0 2px}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:15px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--navy);outline-offset:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.item{display:grid;grid-template-columns:1fr 64px 76px 32px;gap:6px;margin-bottom:6px;align-items:center}
+.item button{height:36px;padding:0}
+button{font:inherit;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer}
+button.main{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.hint{font-size:12px;color:var(--mute);margin:4px 0 0}
+.stage{overflow:hidden}.fit{transform-origin:top left;width:640px}
+/* receipt: always paper-coloured */
+.receipt{width:640px;background:linear-gradient(135deg,#f7faff,#e4edfb);color:#14213d;border-radius:12px;border-bottom:10px solid #143a7b;padding:22px 26px 18px;box-shadow:0 2px 14px rgba(0,0,0,.18)}
+.rh{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:2px solid #143a7b;padding-bottom:12px}
+.logo{font-weight:800;font-size:34px;color:#143a7b;font-style:italic;letter-spacing:-1px;line-height:1}
+.logo small{display:block;font-size:10px;letter-spacing:0;font-style:normal;font-weight:700}
+.shop{flex:1;padding-left:14px;border-left:2px solid #143a7b}
+.shop b{font-size:22px;color:#143a7b;display:block}
+.shop span{font-size:13px}
+.tag{background:#143a7b;color:#fff;border-radius:10px;padding:8px 14px;text-align:center;font-weight:700;font-size:18px;line-height:1.2}
+.tag small{display:block;font-weight:400;font-size:13px}
+.meta{display:flex;justify-content:space-between;gap:12px;margin:12px 0;font-size:14px}
+.meta div{line-height:1.7}
+table{width:100%;border-collapse:collapse;font-size:14px;border:1.5px solid #143a7b;background:#fff}
+th{background:#143a7b;color:#fff;padding:7px;font-weight:700}
+td{padding:7px 10px;border-top:1px solid #cfd9ec;border-left:1px solid #cfd9ec}
+td.n,th.n{text-align:right}td.c{text-align:center}
+.bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;align-items:start}
+.box{background:#dce8fa;border:1px solid #9db8e6;border-radius:10px;padding:10px 14px;font-size:14px}
+.thanks{text-align:center;font-weight:500;margin-bottom:10px}
+.sum{border:1.5px solid #143a7b;background:#fff;font-size:14px}
+.sum div{display:flex;justify-content:space-between;padding:6px 12px;border-top:1px solid #cfd9ec}
+.sum div:first-child{border-top:0}
+.sum .net{background:#143a7b;color:#fff;font-size:19px;font-weight:700;padding:10px 12px}
+.pay b{font-size:20px}
+.foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;gap:10px}
+.sig{width:30%;text-align:center;font-size:13px;border-top:1px solid #143a7b;padding-top:4px}
+.stamp{border:3px solid var(--accent);color:var(--accent);font-weight:800;font-size:22px;padding:4px 14px;border-radius:8px;transform:rotate(-6deg);opacity:.85;white-space:nowrap}
+.stamp.unpaid{display:none}
+.bar{height:36px;width:150px;background:repeating-linear-gradient(90deg,#14213d 0 2px,transparent 2px 4px,#14213d 4px 5px,transparent 5px 8px,#14213d 8px 11px,transparent 11px 13px);margin:0 auto 2px}
+.code{text-align:center;font-size:12px}
+:root,:root:not([data-theme="light"]),:root[data-theme="dark"]{--bg:#ffe9a8;--panel:#fffdf5;--ink:#2b2350;--mute:#6b5f9a;--line:#2b2350;--navy:#3d5afe;--soft:#c9f2ff;--accent:#ff4d6d;color-scheme:light}
+body{font-family:"Mali","Mitr",Tahoma,sans-serif;background:#ffe9a8 radial-gradient(circle,#ffd166 2px,transparent 2.5px) 0 0/22px 22px}
+.form{border:3px solid #2b2350;border-radius:24px;box-shadow:6px 6px 0 #2b2350}
+.mascot{font-size:44px;display:inline-block;vertical-align:middle;transform-origin:50% 90%;animation:wob 2.6s ease-in-out infinite}
+@keyframes wob{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg) translateY(-3px)}}
+h1{font-family:"Mitr",sans-serif;font-weight:500;font-size:23px;display:inline-block;vertical-align:middle;margin:0 0 4px 8px;color:#2b2350}
+.sub{margin:0 0 14px;font-size:13px;color:#6b5f9a}
+legend{font-family:"Mitr",sans-serif;font-weight:400;background:#ffd166;border:2px solid #2b2350;border-radius:999px;padding:1px 14px;color:#2b2350!important}
+label{color:#6b5f9a;font-weight:600}
+input,select{border:2px solid #2b2350;border-radius:12px;background:#fff;color:#2b2350}
+button{border:2px solid #2b2350;border-radius:14px;box-shadow:0 3px 0 #2b2350;font-weight:700;color:#2b2350;background:#c9f2ff;font-family:inherit}
+button:active{transform:translateY(3px);box-shadow:none}
+button.main{background:#ff4d6d;color:#fff}
+.receipt{font-family:"Mali","Mitr",Tahoma,sans-serif;background:#fff;border:4px solid #2b2350;border-radius:26px;box-shadow:none}
+.rh{border-bottom:3px dashed #2b2350}
+.logo{color:#3d5afe;font-family:"Mitr",sans-serif}
+.shop{border-left:3px solid #2b2350}
+.shop b{font-family:"Mitr",sans-serif;font-size:20px;color:#2b2350}
+.tag{background:#ff4d6d;border:3px solid #2b2350;border-radius:16px;transform:rotate(2deg)}
+table{border:3px solid #2b2350;border-radius:12px;border-collapse:separate;border-spacing:0;overflow:hidden}
+th{background:#3d5afe}
+.box{background:#c9f2ff;border:3px solid #2b2350;border-radius:18px}
+.sum{border:3px solid #2b2350;border-radius:16px;overflow:hidden}
+.sum .net{background:#ff4d6d}
+.stamp{border:4px solid #ff4d6d;background:#fff0f3;border-radius:14px;font-family:"Mitr",sans-serif;animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:rotate(-6deg) scale(2);opacity:0}}
+.sig{border-top:2px dashed #2b2350}
+@media (prefers-reduced-motion:reduce){.mascot,.stamp{animation:none}}
+.deal{text-align:center;font-family:"Mitr",sans-serif;background:#ffd166;border:3px solid #2b2350;border-radius:999px;padding:4px 12px;margin-top:12px;font-size:16px}
+@media print{body{background:#fff}.form,h1{display:none}.wrap{display:block;padding:0}.receipt{box-shadow:none;min-width:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="form">
+  <div class="mascot" aria-hidden="true">🧾</div><h1>ระบบสร้างใบเสร็จอัตโนมัติ</h1>
+  <p class="sub">กรอกข้อมูลปุ๊บ ใบเสร็จขึ้นปั๊บ ✨</p>
+  <fieldset><legend>🌏 ซื้อ-ขาย ระหว่างประเทศ</legend>
+    <div class="row2"><div><label for="cA">ประเทศที่ซื้อ</label><input id="cA" placeholder="ชื่อประเทศ"></div>
+    <div><label for="cB">ประเทศที่ขาย</label><input id="cB" placeholder="ชื่อประเทศ"></div></div>
+  </fieldset>
+  <fieldset><legend>🏪 ร้านค้า</legend>
+    <label for="shop">ชื่อร้าน</label><input id="shop" value="ร้านสะดวกซื้อสหพันธ์ USN">
+    <label for="slogan">คำขวัญ</label><input id="slogan" value="“บริการด้วยใจ เพื่อประชาชนทุกคน”">
+    <div class="row2"><div><label for="branch">สาขา</label><input id="branch" value="สาขากลางเมือง USN"></div>
+    <div><label for="seller">ผู้ขาย</label><input id="seller" value="พนักงานร้านค้า"></div></div>
+  </fieldset>
+  <fieldset><legend>🧾 ใบเสร็จ</legend>
+    <div class="row2"><div><label for="date">วันที่</label><input id="date" type="date"></div>
+    <div><label for="time">เวลา</label><input id="time" type="time"></div></div>
+    <label for="no">เลขที่ใบเสร็จ</label><input id="no">
+    <p class="hint">สร้างเลขอัตโนมัติจากวันที่ + ลำดับ (เช่น 20261117-0001) แก้ไขเองได้</p>
+  </fieldset>
+  <fieldset><legend>🛒 รายการสินค้า</legend>
+    <div id="items"></div>
+    <button id="add" type="button">➕ เพิ่มรายการ</button>
+  </fieldset>
+  <fieldset><legend>💰 ภาษีและการชำระเงิน</legend>
+    <div class="row2"><div><label for="vat">VAT (%)</label><input id="vat" type="number" min="0" step="0.01" value="0"></div>
+    <div><label for="cname">ชื่อสกุลเงิน</label><input id="cname" value="ออร่า"></div></div>
+    <div class="row2"><div><label for="ccode">รหัสสกุลเงิน</label><input id="ccode" value="AUR"></div>
+    <div><label for="paid">สถานะ</label><select id="paid"><option value="1">ชำระเงินแล้ว</option><option value="0">ยังไม่ชำระ</option></select></div></div>
+    <label for="rate" id="rateL">1 AUR = กี่บาท</label><input id="rate" type="number" min="0" step="any" value="0">
+    <p class="hint" id="rateHint">จำนวนสกุลเงิน = ยอดสุทธิ (บาท) ÷ อัตรา</p>
+  </fieldset>
+  <div class="actions">
+    <button class="main" id="new" type="button">ใบเสร็จใหม่ (ล้างเป็น 0)</button>
+  </div>
+</section>
+
+<section class="stage" aria-live="polite">
+<div class="fit" id="fit">
+<div class="receipt" id="r">
+  <div class="rh">
+    <div class="logo">USN<small>CONVENIENCE STORE</small></div>
+    <div class="shop"><b id="rShop"></b><span id="rSlogan"></span></div>
+    <div class="tag">ใบเสร็จรับเงิน<small>(Receipt)</small></div>
+  </div>
+  <div class="deal" id="rDeal"></div>
+  <div class="meta">
+    <div>เลขที่ใบเสร็จ : <b id="rNo"></b><br>วันที่ : <span id="rDate"></span><br>เวลา : <span id="rTime"></span></div>
+    <div>สาขา : <span id="rBranch"></span><br>ผู้ขาย : <span id="rSeller"></span></div>
+  </div>
+  <table>
+    <thead><tr><th>ลำดับ</th><th>รายการสินค้า</th><th>จำนวน</th><th class="n">ราคาต่อหน่วย</th><th class="n">ราคารวม</th></tr></thead>
+    <tbody id="rRows"></tbody>
+  </table>
+  <div class="bottom">
+    <div>
+      <div class="box thanks">ขอบคุณที่มาใช้บริการ<br><span id="rThanks"></span></div>
+      <div class="box pay">วิธีการชำระเงิน : <b id="rMethod"></b><br><span id="rAmtLabel">จำนวนเงิน</span> : <b id="rAmt"></b></div>
+    </div>
+    <div class="sum">
+      <div><b>รวมทั้งสิ้น</b><span id="rSub"></span></div>
+      <div><span id="rVatL"></span><span id="rVat"></span></div>
+      <div class="net"><span>ยอดชำระสุทธิ</span><span id="rNet"></span></div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="sig">ผู้รับเงิน</div>
+    <div><div class="bar"></div><div class="code" id="rCode"></div></div>
+    <div class="stamp" id="stamp">✔ ชำระเงินแล้ว</div>
+    <div class="sig">ผู้ตรวจสอบ</div>
+  </div>
+</div>
+</div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const months=["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+const money=n=>n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pad=(n,l)=>String(n).padStart(l,"0");
+
+function getSeq(day){try{return parseInt(localStorage.getItem("rcpt-"+day)||"0",10)||0}catch(e){return 0}}
+function setSeq(day,n){try{localStorage.setItem("rcpt-"+day,String(n))}catch(e){}}
+
+function addItem(name="",qty=0,price=0){
+  const d=document.createElement("div");d.className="item";
+  d.innerHTML=`<input class="in-name" placeholder="ชื่อสินค้า" aria-label="ชื่อสินค้า" value="${esc(name)}">
+  <input class="in-qty" type="number" min="0" step="any" aria-label="จำนวน" value="${qty}">
+  <input class="in-price" type="number" min="0" step="0.01" aria-label="ราคาต่อหน่วย" value="${price}">
+  <button type="button" aria-label="ลบรายการ">✕</button>`;
+  d.querySelector("button").onclick=()=>{d.remove();render()};
+  $("items").appendChild(d);
+}
+
+function nextNo(){
+  const dv=$("date").value||"";
+  const day=dv.replaceAll("-","");
+  return day+"-"+pad(getSeq(day)+1,4);
+}
+
+function render(){
+  const dv=$("date").value;
+  let dateTxt="";
+  if(dv){const [y,m,d]=dv.split("-").map(Number);dateTxt=`${d} ${months[m-1]} ${y+543}`}
+  $("rShop").textContent=$("shop").value;
+  $("rDeal").innerHTML="ประเทศ <b>"+esc($("cA").value.trim()||".....")+"</b> ซื้อ-ขาย ประเทศ <b>"+esc($("cB").value.trim()||".....")+"</b>";
+  $("rSlogan").textContent=$("slogan").value;
+  $("rBranch").textContent=$("branch").value;
+  $("rSeller").textContent=$("seller").value;
+  $("rNo").textContent=$("rCode").textContent=$("no").value;
+  $("rDate").textContent=dateTxt;
+  $("rTime").textContent=$("time").value?$("time").value+" น.":"";
+  $("rThanks").textContent=$("shop").value.replace(/^ร้านสะดวกซื้อ/,"").trim();
+
+  let sub=0,html="",i=0;
+  document.querySelectorAll(".item").forEach(it=>{
+    const n=it.querySelector(".in-name").value.trim();
+    const q=parseFloat(it.querySelector(".in-qty").value)||0;
+    const p=parseFloat(it.querySelector(".in-price").value)||0;
+    i++;const t=q*p;sub+=t;
+    html+=`<tr><td class="c">${i}</td><td>${esc(n)}</td><td class="c">${q}</td><td class="n">${money(p)} บาท</td><td class="n">${money(t)} บาท</td></tr>`;
+  });
+  $("rRows").innerHTML=html||`<tr><td colspan="5" class="c">ยังไม่มีรายการสินค้า</td></tr>`;
+
+  const vr=parseFloat($("vat").value)||0;
+  const vat=sub*vr/100, net=sub+vat;
+  $("rSub").textContent=money(sub)+" บาท";
+  $("rVatL").textContent=`ภาษีมูลค่าเพิ่ม (VAT) ${vr}%`;
+  $("rVat").textContent=money(vat)+" บาท";
+  $("rNet").textContent=money(net)+" บาท";
+
+  const cn=$("cname").value.trim(),cc=$("ccode").value.trim().toUpperCase();const m=cn+(cc?" ("+cc+")":"");
+  $("rMethod").textContent=m;
+  const rate=parseFloat($("rate").value)||0;
+  $("rateL").textContent="1 "+(cc||"หน่วย")+" = กี่บาท";
+  
+  $("rAmt").textContent=money(rate>0?net/rate:0)+" "+cc;
+  $("stamp").classList.toggle("unpaid",$("paid").value!=="1");
+  fit();
+}
+
+function fresh(){
+  const now=new Date();
+  $("date").value=`${now.getFullYear()}-${pad(now.getMonth()+1,2)}-${pad(now.getDate(),2)}`;
+  $("time").value=`${pad(now.getHours(),2)}:${pad(now.getMinutes(),2)}`;
+  $("no").value=nextNo();
+  $("items").innerHTML="";addItem();
+  render();
+}
+
+document.querySelector(".form").addEventListener("input",e=>{
+  if(e.target.id==="date"){$("no").value=nextNo()}
+  render();
+});
+$("add").onclick=()=>{addItem();};
+$("new").onclick=()=>{
+  const day=($("date").value||"").replaceAll("-","");
+  const used=parseInt(($("no").value.split("-")[1]||"0"),10)||0;
+  setSeq(day,Math.max(getSeq(day),used));
+  fresh();
+};
+function fit(){const s=$("fit"),st=document.querySelector(".stage");const sc=Math.min(1,st.clientWidth/640);s.style.transform="scale("+sc+")";st.style.height=(s.offsetHeight*sc)+"px"}
+window.addEventListener("resize",fit);
+window.addEventListener("load",fit);
+
+// start with the sample receipt
+(function(){
+  const now=new Date();
+  $("date").value=`${now.getFullYear()}-${pad(now.getMonth()+1,2)}-${pad(now.getDate(),2)}`;
+  $("time").value=`${pad(now.getHours(),2)}:${pad(now.getMinutes(),2)}`;
+  $("no").value=nextNo();
+  $("items").innerHTML="";addItem("",0,0);
+  render();
+})();
+</script>
+</body>
+</html>
